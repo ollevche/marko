@@ -35,7 +35,7 @@ func listenAndServe() error {
 	}
 
 	obsidianCreds := strings.SplitN(os.Getenv("OBSIDIAN_CREDS"), ":", 2)
-	if len(obsidianCreds) != 3 {
+	if len(obsidianCreds) != 2 {
 		return fmt.Errorf("invalid obsidian creds secret")
 	}
 
