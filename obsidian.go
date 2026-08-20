@@ -110,8 +110,10 @@ func (ob *obsidian) writeTranscriptFile(t transcript) error {
 }
 
 func runOB(args ...string) error {
-	if err := exec.Command("ob", args...).Run(); err != nil {
-		return fmt.Errorf("running %v: %w", args[0], err)
+	if out, err := exec.Command("ob", args...).Output(); err != nil {
+		return fmt.Errorf("running %v: %w: %v", args[0], err, string(out))
+	} else {
+		log.Println("ob out:", string(out))
 	}
 
 	return nil
