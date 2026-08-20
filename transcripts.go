@@ -99,26 +99,30 @@ func (t transcript) filename() string {
 }
 
 func (t transcript) title() string {
-	return fmt.Sprintf("%v-%v %s", t.MeetingTime.Hour(), t.MeetingTime.Minute(), t.Title)
+	return fmt.Sprintf("%02d-%02d %s", t.MeetingTime.Hour(), t.MeetingTime.Minute(), t.Title)
 }
 
 func (t transcript) body() string {
 	var b strings.Builder
 
-	b.WriteString("Owner: ")
+	b.WriteString("Owner:\t\t")
 	b.WriteString(t.Owner.Email)
 	b.WriteByte('\n')
 
-	b.WriteString("Date: ")
+	b.WriteString("Date:\t\t")
 	b.WriteString(t.MeetingTime.Format(time.DateTime))
 	b.WriteByte('\n')
 
-	b.WriteString("Length: ")
+	b.WriteString("Length:\t\t")
 	b.WriteString(time.Duration(int64(t.Duration) * int64(time.Second)).String())
 	b.WriteByte('\n')
 
-	b.WriteString("Attendees: ")
-	b.WriteString(strings.Join(t.Attendees, ", "))
+	b.WriteString("Attendees:\t\t")
+	att := "<none>"
+	if len(t.Attendees) != 0 {
+		att = strings.Join(t.Attendees, ", ")
+	}
+	b.WriteString(att)
 	b.WriteByte('\n')
 
 	b.WriteString("\n---\n")

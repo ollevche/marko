@@ -65,7 +65,7 @@ func (ob *obsidian) syncTranscript(t transcript) error {
 func (ob *obsidian) getTranscriptFilepath(t transcript) string {
 	y, m, d := t.MeetingTime.Date()
 
-	filepath := fmt.Sprintf("%v/%v/%v/%v - %v/%v - %v/",
+	filepath := fmt.Sprintf("%v/%v/%v/%d - %v/%v - %v/",
 		ob.c.VaultPath, ob.c.TranscriptsPathPrefix,
 		y, m, m.String(), d, t.MeetingTime.Weekday())
 
