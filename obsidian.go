@@ -11,6 +11,8 @@ type obsidianConfig struct {
 	Email                 string
 	Password              string
 	VaultPath             string
+	VaultName             string
+	VaultPassword         string
 	TranscriptsPathPrefix string
 }
 
@@ -24,6 +26,10 @@ func newObsidian(c obsidianConfig) (*obsidian, error) {
 	}
 
 	if err := ob.login(); err != nil {
+		return nil, err
+	}
+
+	if err := ob.syncSetup(); err != nil {
 		return nil, err
 	}
 
@@ -68,6 +74,11 @@ func (ob *obsidian) getTranscriptFilepath(t transcript) string {
 
 func (ob *obsidian) login() error {
 	return runOB("login", "--email", ob.c.Email, "--password", ob.c.Password)
+}
+
+func (ob *obsidian) syncSetup() error {
+	return runOB("sync-setup", "--vault", ob.c.VaultName, "--password", ob.c.VaultPassword,
+		"--path", ob.c.VaultPath, "--device-name", "marko")
 }
 
 func (ob *obsidian) sync() error {

@@ -43,11 +43,21 @@ func listenAndServe() error {
 		Email:                 obsidianCreds[0],
 		Password:              obsidianCreds[1],
 		VaultPath:             os.Getenv("OBSIDIAN_VAULT_PATH"),
+		VaultName:             os.Getenv("OBSIDIAN_VAULT_NAME"),
+		VaultPassword:         os.Getenv("OBSIDIAN_VAULT_PASSWORD"),
 		TranscriptsPathPrefix: os.Getenv("OBSIDIAN_TRANSCRIPTS_PATH_PREFIX"),
 	}
 
-	if obsidianConfig.VaultPath == "" || obsidianConfig.TranscriptsPathPrefix == "" {
-		return fmt.Errorf("missing configuration for obsidian")
+	if obsidianConfig.VaultPath == "" || obsidianConfig.VaultName == "" {
+		return fmt.Errorf("missing configuration for obsidian vault")
+	}
+
+	if obsidianConfig.VaultPassword == "" {
+		return fmt.Errorf("missing vault password")
+	}
+
+	if obsidianConfig.TranscriptsPathPrefix == "" {
+		return fmt.Errorf("missing transcripts path prefix")
 	}
 
 	obsidian, err := newObsidian(obsidianConfig)
