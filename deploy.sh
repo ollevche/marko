@@ -5,7 +5,7 @@ gcloud run deploy marko \
   --set-secrets BLUEDOT_WEBHOOK_SECRET=bluedot-webhook-secret:latest \
   --set-secrets OBSIDIAN_CREDS=obsidian-creds:latest \
   --set-secrets OBSIDIAN_VAULT_PASSWORD=obsidian-vault-password:latest \
-  --update-env-vars OBSIDIAN_VAULT_PATH=vault \
+  --update-env-vars OBSIDIAN_VAULT_PATH=/home/node/vault \
   --update-env-vars OBSIDIAN_VAULT_NAME=main \
   --update-env-vars OBSIDIAN_TRANSCRIPTS_PATH_PREFIX=marko/transcripts \
   --project marko-506115

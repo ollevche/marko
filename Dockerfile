@@ -35,6 +35,11 @@ COPY --from=go-build /out/marko /usr/local/bin/marko
 
 ENV PORT=8080
 EXPOSE 8080
+
+# Runs as node, so the vault has to live somewhere node owns. This also gives
+# relative paths a writable base: the Obsidian CLI resolves --path against the
+# working directory, and / is root-owned.
+WORKDIR /home/node
 USER node
 
 ENTRYPOINT ["/usr/local/bin/marko"]
