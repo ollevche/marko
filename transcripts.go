@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,11 +45,11 @@ func (h *transcriptHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type transcript struct {
-	Attendees   []string  `json:"attendees"`
-	CreatedAt   time.Time `json:"createdAt"`
-	Duration    float64   `json:"duration"`
-	MeetingID   time.Time `json:"meetingId"`
-	MeetingTime time.Time `json:"meetingTime"`
+	Attendees   []string    `json:"attendees"`
+	CreatedAt   unixSeconds `json:"createdAt"`
+	Duration    float64     `json:"duration"`
+	MeetingID   string      `json:"meetingId"`
+	MeetingTime unixSeconds `json:"meetingTime"`
 	Owner       struct {
 		Email string `json:"email"`
 	} `json:"owner"`
@@ -59,6 +60,36 @@ type transcript struct {
 	} `json:"transcript"`
 	Type    string `json:"type"`
 	VideoID string `json:"videoId"`
+}
+
+// unixSeconds is a time.Time carried in JSON as a Unix timestamp in whole
+// seconds, which is how Bluedot sends its dates. It reads a bare number or a
+// quoted one, and always writes a bare number back.
+type unixSeconds struct {
+	time.Time
+}
+
+func (u *unixSeconds) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(string(data), `"`)
+	if s == "" || s == "null" {
+		u.Time = time.Time{}
+		return nil
+	}
+
+	secs, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid unix timestamp %s: %w", data, err)
+	}
+
+	u.Time = time.Unix(secs, 0)
+	return nil
+}
+
+func (u unixSeconds) MarshalJSON() ([]byte, error) {
+	if u.IsZero() {
+		return []byte("null"), nil
+	}
+	return strconv.AppendInt(nil, u.Unix(), 10), nil
 }
 
 func (t transcript) title() string {
