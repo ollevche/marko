@@ -24,20 +24,43 @@ func main() {
 }
 
 func listenAndServe() error {
-	bluedotSecret := strings.TrimSpace(os.Getenv("BLUEDOT_WEBHOOK_SECRET"))
+	bluedotSecret := os.Getenv("BLUEDOT_WEBHOOK_SECRET")
 	if bluedotSecret == "" {
 		return errors.New("no bluedot secret found")
 	}
 
 	bluedotVerifier, err := svix.NewWebhook(bluedotSecret)
 	if err != nil {
-		return fmt.Errorf("failed to init bluedot webhook verifier: %w", err)
+		return fmt.Errorf("initing bluedot webhook verifier: %w", err)
 	}
+
+	obsidianCreds := strings.SplitN(os.Getenv("OBSIDIAN_CREDS"), ":", 2)
+	if len(obsidianCreds) != 3 {
+		return fmt.Errorf("invalid obsidian creds secret")
+	}
+
+	obsidianConfig := obsidianConfig{
+		Email:                 obsidianCreds[0],
+		Password:              obsidianCreds[1],
+		VaultPath:             os.Getenv("OBSIDIAN_VAULT_PATH"),
+		TranscriptsPathPrefix: os.Getenv("OBSIDIAN_TRANSCRIPTS_PATH_PREFIX"),
+	}
+
+	if obsidianConfig.VaultPath == "" || obsidianConfig.TranscriptsPathPrefix == "" {
+		return fmt.Errorf("missing configuration for obsidian")
+	}
+
+	obsidian, err := newObsidian(obsidianConfig)
+	if err != nil {
+		return fmt.Errorf("creating obsidian: %w", err)
+	}
+	defer obsidian.close()
 
 	mux := http.NewServeMux()
 
 	mux.Handle("POST /meetings/transcripts", &transcriptHandler{
 		verifier: bluedotVerifier,
+		obsidian: obsidian,
 	})
 
 	srv := &http.Server{

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 
 type transcriptHandler struct {
 	verifier *svix.Webhook
+	obsidian *obsidian
 }
 
 func (h *transcriptHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +37,10 @@ func (h *transcriptHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(t.title())
-	log.Println(t.body())
+	if err := h.obsidian.syncTranscript(t); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = io.WriteString(w, "ok")
@@ -90,6 +92,10 @@ func (u unixSeconds) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return strconv.AppendInt(nil, u.Unix(), 10), nil
+}
+
+func (t transcript) filename() string {
+	return t.title() + ".md"
 }
 
 func (t transcript) title() string {
