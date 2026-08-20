@@ -90,7 +90,7 @@ func (ob *obsidian) logout() error {
 func (ob *obsidian) writeTranscriptFile(t transcript) error {
 	transcriptFilepath := ob.getTranscriptFilepath(t)
 
-	err := os.MkdirAll(transcriptFilepath, os.ModeDir)
+	err := os.MkdirAll(transcriptFilepath, 0o755)
 	if err != nil {
 		return fmt.Errorf("running mkdirall: %w", err)
 	}
