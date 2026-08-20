@@ -110,8 +110,6 @@ func (ob *obsidian) writeTranscriptFile(t transcript) error {
 }
 
 func runOB(args ...string) error {
-	args = append(args, "--disable-gpu", "--disable-software-rasterizer")
-
 	cmd := exec.Command("ob", args...)
 
 	if out, err := cmd.CombinedOutput(); err != nil {
