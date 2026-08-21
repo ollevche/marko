@@ -134,7 +134,7 @@ func (t transcript) body() string {
 	b.WriteString(t.Owner.Email)
 	b.WriteByte('\n')
 
-	b.WriteString("Date:\t\t")
+	b.WriteString("Date:\t\t\t")
 	b.WriteString(t.MeetingTime.Format(time.DateTime))
 	b.WriteByte('\n')
 
@@ -142,15 +142,13 @@ func (t transcript) body() string {
 	b.WriteString(time.Duration(int64(t.Duration) * int64(time.Second)).String())
 	b.WriteByte('\n')
 
-	b.WriteString("Attendees:\t\t")
+	b.WriteString("Attendees:\t")
 	att := "<none>"
 	if len(t.Attendees) != 0 {
 		att = strings.Join(t.Attendees, ", ")
 	}
 	b.WriteString(att)
-	b.WriteByte('\n')
-
-	b.WriteString("\n---\n")
+	b.WriteString("\n\n")
 
 	for i, r := range t.Transcript {
 		b.WriteString(r.Speaker)
