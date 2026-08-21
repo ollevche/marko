@@ -123,8 +123,24 @@ func sanitizeFilename(name string) string {
 	return cleaned
 }
 
+var userLocation *time.Location
+
+func init() {
+	l, err := time.LoadLocation("Europe/Kyiv")
+	if err != nil {
+		panic("loading user location: " + err.Error())
+	}
+
+	userLocation = l
+}
+
+func toUserLocation(t time.Time) time.Time {
+	return t.In(userLocation)
+}
+
 func (t transcript) title() string {
-	return fmt.Sprintf("%02d-%02d %s", t.MeetingTime.Hour(), t.MeetingTime.Minute(), t.Title)
+	mt := toUserLocation(t.MeetingTime.Time)
+	return fmt.Sprintf("%02d-%02d %s", mt.Hour(), mt.Minute(), t.Title)
 }
 
 func (t transcript) body() string {
@@ -134,8 +150,10 @@ func (t transcript) body() string {
 	b.WriteString(t.Owner.Email)
 	b.WriteByte('\n')
 
+	mt := toUserLocation(t.MeetingTime.Time)
+
 	b.WriteString("Date:\t\t\t")
-	b.WriteString(t.MeetingTime.Format(time.DateTime))
+	b.WriteString(mt.Format(time.DateTime))
 	b.WriteByte('\n')
 
 	b.WriteString("Length:\t\t")
