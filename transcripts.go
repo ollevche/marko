@@ -95,7 +95,32 @@ func (u unixSeconds) MarshalJSON() ([]byte, error) {
 }
 
 func (t transcript) filename() string {
-	return t.title() + ".md"
+	return sanitizeFilename(t.title()) + ".md"
+}
+
+// sanitizeFilename drops the characters that filesystems or Obsidian refuse to
+// carry in a note name, and collapses whatever whitespace is left behind.
+func sanitizeFilename(name string) string {
+	cleaned := strings.Map(func(r rune) rune {
+		switch {
+		case r < 0x20 || r == 0x7f: // control characters
+			return ' '
+		case strings.ContainsRune(`\/:*?"<>|#^[]`, r):
+			return ' '
+		default:
+			return r
+		}
+	}, name)
+
+	cleaned = strings.Join(strings.Fields(cleaned), " ")
+	// Leading dots hide the file, trailing dots are dropped by some filesystems.
+	cleaned = strings.Trim(cleaned, ".")
+
+	if cleaned == "" {
+		return "untitled"
+	}
+
+	return cleaned
 }
 
 func (t transcript) title() string {
