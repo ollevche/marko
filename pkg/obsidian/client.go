@@ -27,7 +27,7 @@ type Client struct {
 	c Config
 }
 
-func NewClient(config Config) (*Client, error) {
+func NewClient(ctx context.Context, config Config) (*Client, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
@@ -36,15 +36,15 @@ func NewClient(config Config) (*Client, error) {
 		c: config,
 	}
 
-	if err := c.login(); err != nil {
+	if err := c.login(ctx); err != nil {
 		return nil, err
 	}
 
-	if err := c.syncSetup(); err != nil {
+	if err := c.syncSetup(ctx); err != nil {
 		return nil, err
 	}
 
-	if err := c.sync(); err != nil {
+	if err := c.sync(ctx); err != nil {
 		return nil, err
 	}
 
@@ -55,24 +55,24 @@ func (c *Client) UploadFile(ctx context.Context, f MarkdownFile) error {
 	if err := c.writeMarkdownFile(f); err != nil {
 		return err
 	}
-	if err := c.sync(); err != nil {
+	if err := c.sync(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Client) Close() error {
-	if err := c.logout(); err != nil {
+func (c *Client) Close(ctx context.Context) error {
+	if err := c.logout(ctx); err != nil {
 		return err
 	}
-	if err := c.deleteVaultFiles(); err != nil {
+	if err := c.deleteVaultFiles(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func runOB(args ...string) error {
-	cmd := exec.Command("ob", args...)
+func runOB(ctx context.Context, args ...string) error {
+	cmd := exec.CommandContext(ctx, "ob", args...)
 
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("running %v: %w: %v", args[0], err, string(out))

@@ -1,6 +1,7 @@
 package obsidian
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -17,8 +18,8 @@ type Storage struct {
 	transcriptFolders []string
 }
 
-func NewStorage(c Config) (*Storage, error) {
-	client, err := obsidian.NewClient(c.Config)
+func NewStorage(ctx context.Context, c Config) (*Storage, error) {
+	client, err := obsidian.NewClient(ctx, c.Config)
 	if err != nil {
 		return nil, fmt.Errorf("creating obsidian client: %w", err)
 	}
@@ -32,6 +33,6 @@ func NewStorage(c Config) (*Storage, error) {
 	return s, nil
 }
 
-func (s *Storage) Close() error {
-	return s.c.Close()
+func (s *Storage) Close(ctx context.Context) error {
+	return s.c.Close(ctx)
 }

@@ -19,6 +19,9 @@ import (
 )
 
 func RunREST() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	userLocation, err := time.LoadLocation("Europe/Kyiv")
 	if err != nil {
 		return fmt.Errorf("loading user location: %w", err)
@@ -47,11 +50,11 @@ func RunREST() error {
 		TranscriptsPathPrefix: os.Getenv("OBSIDIAN_TRANSCRIPTS_PATH_PREFIX"),
 	}
 
-	storage, err := storage.NewStorage(obsidianConfig)
+	storage, err := storage.NewStorage(ctx, obsidianConfig)
 	if err != nil {
 		return fmt.Errorf("creating storage: %w", err)
 	}
-	defer storage.Close()
+	defer storage.Close(ctx)
 
 	server, err := restapi.BuildServer(restapi.Config{
 		BluedotSecret: bluedotSecret,
@@ -63,9 +66,6 @@ func RunREST() error {
 	if err != nil {
 		return fmt.Errorf("building server: %w", err)
 	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	serveErr := make(chan error, 1)
 	go func() {

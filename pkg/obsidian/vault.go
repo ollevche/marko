@@ -1,6 +1,7 @@
 package obsidian
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,17 +15,17 @@ type VaultConfig struct {
 	Password string
 }
 
-func (c *Client) syncSetup() error {
-	return runOB("sync-setup", "--vault", c.c.Vault.Name, "--password", c.c.Vault.Password,
+func (c *Client) syncSetup(ctx context.Context) error {
+	return runOB(ctx, "sync-setup", "--vault", c.c.Vault.Name, "--password", c.c.Vault.Password,
 		"--path", c.c.Vault.Path, "--device-name", "marko")
 }
 
-func (c *Client) sync() error {
-	return runOB("sync", "--path", c.c.Vault.Path)
+func (c *Client) sync(ctx context.Context) error {
+	return runOB(ctx, "sync", "--path", c.c.Vault.Path)
 }
 
-func (c *Client) deleteVaultFiles() error {
-	err := exec.Command("rm", "-r", c.c.Vault.Path).Run()
+func (c *Client) deleteVaultFiles(ctx context.Context) error {
+	err := exec.CommandContext(ctx, "rm", "-r", c.c.Vault.Path).Run()
 	if err != nil {
 		return fmt.Errorf("cleaning up vault after logout: %v", err)
 	}
