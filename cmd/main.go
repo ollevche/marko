@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"context"
@@ -18,7 +18,13 @@ import (
 	"github.com/ollevche/marko/pkg/obsidian"
 )
 
-func RunREST() error {
+func main() {
+	if err := runREST(); err != nil {
+		log.Fatalf("Failed to run REST API: %v", err)
+	}
+}
+
+func runREST() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
