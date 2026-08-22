@@ -1,4 +1,4 @@
-module marko
+module github.com/ollevche/marko
 
 go 1.26.4
 
