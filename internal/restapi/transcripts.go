@@ -70,11 +70,11 @@ func (h *transcripts) postMeetingTranscript(w http.ResponseWriter, r *http.Reque
 		Attendees:   reqBody.Attendees,
 		Lines:       make([]transcript.Line, len(reqBody.Transcript)),
 	}
-	for _, l := range reqBody.Transcript {
-		t.Lines = append(t.Lines, transcript.Line{
+	for i, l := range reqBody.Transcript {
+		t.Lines[i] = transcript.Line{
 			Speaker: l.Speaker,
 			Text:    l.Text,
-		})
+		}
 	}
 
 	err = h.service.ProcessTranscript(r.Context(), t)
