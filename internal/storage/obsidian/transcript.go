@@ -16,8 +16,8 @@ func (s *Storage) UploadTranscript(ctx context.Context, t transcript.Transcript)
 
 	folders := append(s.transcriptFolders, []string{
 		fmt.Sprintf("%v", y),
-		fmt.Sprintf("%d - %v", m, m.String()),
-		fmt.Sprintf("%v - %v", d, t.MeetingTime.Weekday()),
+		fmt.Sprintf("%02d - %v", m, m.String()),
+		fmt.Sprintf("%02d - %v", d, t.MeetingTime.Weekday()),
 	}...)
 
 	filename := fmt.Sprintf("%02d-%02d %s.md",
