@@ -63,7 +63,7 @@ func (c *Client) UploadFile(ctx context.Context, f MarkdownFile) error {
 }
 
 func (c *Client) Close(ctx context.Context) error {
-	return errors.Join(c.logout(ctx), c.deleteVault())
+	return errors.Join(c.syncUnlink(ctx), c.logout(ctx), c.deleteVault())
 }
 
 func runOB(ctx context.Context, args ...string) error {

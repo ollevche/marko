@@ -23,6 +23,10 @@ func (c *Client) sync(ctx context.Context) error {
 	return runOB(ctx, "sync", "--path", c.c.Vault.Path)
 }
 
+func (c *Client) syncUnlink(ctx context.Context) error {
+	return runOB(ctx, "sync-unlink", "--path", c.c.Vault.Path)
+}
+
 func (c *Client) deleteVault() error {
 	if err := os.RemoveAll(c.c.Vault.Path); err != nil {
 		return fmt.Errorf("cleaning up vault after logout: %w", err)
