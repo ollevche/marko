@@ -11,10 +11,19 @@ import (
 )
 
 func (s *Store) UploadTranscript(ctx context.Context, t transcript.Transcript) error {
+	err := s.c.UploadFile(ctx, newMarkdownFileFromTranscript(s.transcriptFolders, t))
+	if err != nil {
+		return fmt.Errorf("uploading file: %w", err)
+	}
+
+	return nil
+}
+
+func newMarkdownFileFromTranscript(transcriptFolders []string, t transcript.Transcript) obsidian.MarkdownFile {
 	mt := t.MeetingTime
 	y, m, d := t.MeetingTime.Date()
 
-	folders := append(s.transcriptFolders, []string{
+	folders := append(transcriptFolders, []string{
 		fmt.Sprintf("%v", y),
 		fmt.Sprintf("%02d - %v", m, m.String()),
 		fmt.Sprintf("%02d - %v", d, t.MeetingTime.Weekday()),
@@ -51,14 +60,9 @@ func (s *Store) UploadTranscript(ctx context.Context, t transcript.Transcript) e
 		}
 	}
 
-	err := s.c.UploadFile(ctx, obsidian.MarkdownFile{
+	return obsidian.MarkdownFile{
 		Folders:  folders,
 		Filename: filename,
 		Content:  content.String(),
-	})
-	if err != nil {
-		return fmt.Errorf("uploading file: %w", err)
 	}
-
-	return nil
 }
