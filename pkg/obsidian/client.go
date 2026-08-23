@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"sync"
 )
 
 type Config struct {
@@ -26,6 +27,11 @@ func (c Config) Validate() error {
 
 type Client struct {
 	c Config
+
+	// syncMu serializes every operation that touches the vault or its sync
+	// registration. Overlapping `ob sync` processes against one vault path are
+	// not safe, and unlinking or deleting underneath a running sync is worse.
+	syncMu sync.Mutex
 }
 
 func NewClient(ctx context.Context, config Config) (*Client, error) {

@@ -20,14 +20,23 @@ func (c *Client) syncSetup(ctx context.Context) error {
 }
 
 func (c *Client) sync(ctx context.Context) error {
+	c.syncMu.Lock()
+	defer c.syncMu.Unlock()
+
 	return runOB(ctx, "sync", "--path", c.c.Vault.Path)
 }
 
 func (c *Client) syncUnlink(ctx context.Context) error {
+	c.syncMu.Lock()
+	defer c.syncMu.Unlock()
+
 	return runOB(ctx, "sync-unlink", "--path", c.c.Vault.Path)
 }
 
 func (c *Client) deleteVault() error {
+	c.syncMu.Lock()
+	defer c.syncMu.Unlock()
+
 	if err := os.RemoveAll(c.c.Vault.Path); err != nil {
 		return fmt.Errorf("cleaning up vault after logout: %w", err)
 	}
