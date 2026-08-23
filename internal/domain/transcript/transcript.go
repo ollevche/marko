@@ -21,13 +21,13 @@ type Transcript struct {
 	Lines       []Line
 }
 
-type Storage interface {
+type Store interface {
 	UploadTranscript(context.Context, Transcript) error
 }
 
 type Service struct {
 	UserLocation *time.Location
-	Storage      Storage
+	Store        Store
 }
 
 var ErrEmptyTranscript = errors.New("no transcript lines")
@@ -65,7 +65,7 @@ func (s *Service) ProcessTranscript(ctx context.Context, t Transcript) error {
 		sort.Strings(t.Attendees)
 	}
 
-	if err := s.Storage.UploadTranscript(ctx, t); err != nil {
+	if err := s.Store.UploadTranscript(ctx, t); err != nil {
 		return fmt.Errorf("uploading transcript: %w", err)
 	}
 

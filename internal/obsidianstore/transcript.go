@@ -1,4 +1,4 @@
-package obsidian
+package obsidianstore
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/ollevche/marko/pkg/obsidian"
 )
 
-func (s *Storage) UploadTranscript(ctx context.Context, t transcript.Transcript) error {
+func (s *Store) UploadTranscript(ctx context.Context, t transcript.Transcript) error {
 	mt := t.MeetingTime
 	y, m, d := t.MeetingTime.Date()
 

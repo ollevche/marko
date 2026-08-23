@@ -1,4 +1,4 @@
-package obsidian
+package obsidianstore
 
 import (
 	"context"
@@ -13,26 +13,26 @@ type Config struct {
 	TranscriptsPathPrefix string
 }
 
-type Storage struct {
+type Store struct {
 	c                 *obsidian.Client
 	transcriptFolders []string
 }
 
-func NewStorage(ctx context.Context, c Config) (*Storage, error) {
+func New(ctx context.Context, c Config) (*Store, error) {
 	client, err := obsidian.NewClient(ctx, c.Config)
 	if err != nil {
 		return nil, fmt.Errorf("creating obsidian client: %w", err)
 	}
 
-	s := &Storage{
+	s := &Store{
 		c: client,
 	}
 
-	// this will fail once path prefix contains escapeed slash
+	// this will fail once path prefix contains escaped slash
 	s.transcriptFolders = strings.Split(c.TranscriptsPathPrefix, "/")
 	return s, nil
 }
 
-func (s *Storage) Close(ctx context.Context) error {
+func (s *Store) Close(ctx context.Context) error {
 	return s.c.Close(ctx)
 }

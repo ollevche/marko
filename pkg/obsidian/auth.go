@@ -7,8 +7,5 @@ func (c *Client) login(ctx context.Context) error {
 }
 
 func (c *Client) logout(ctx context.Context) error {
-	if err := runOB(ctx, "logout"); err != nil {
-		return err
-	}
-	return nil
+	return runOB(ctx, "logout")
 }

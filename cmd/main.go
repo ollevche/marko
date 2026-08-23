@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/ollevche/marko/internal/domain/transcript"
+	"github.com/ollevche/marko/internal/obsidianstore"
 	"github.com/ollevche/marko/internal/restapi"
-	storage "github.com/ollevche/marko/internal/storage/obsidian"
 	"github.com/ollevche/marko/pkg/obsidian"
 )
 
@@ -43,7 +43,7 @@ func runREST() error {
 		return fmt.Errorf("invalid obsidian creds secret")
 	}
 
-	obsidianConfig := storage.Config{
+	storeConfig := obsidianstore.Config{
 		Config: obsidian.Config{
 			Email:    obsidianCreds[0],
 			Password: obsidianCreds[1],
@@ -56,18 +56,18 @@ func runREST() error {
 		TranscriptsPathPrefix: os.Getenv("OBSIDIAN_TRANSCRIPTS_PATH_PREFIX"),
 	}
 
-	storage, err := storage.NewStorage(ctx, obsidianConfig)
+	store, err := obsidianstore.New(ctx, storeConfig)
 	if err != nil {
-		return fmt.Errorf("creating storage: %w", err)
+		return fmt.Errorf("creating store: %w", err)
 	}
-	defer storage.Close(ctx)
+	defer store.Close(ctx)
 
 	server, err := restapi.BuildServer(restapi.Config{
 		BluedotSecret: bluedotSecret,
 		Addr:          addr(),
 	}, &transcript.Service{
 		UserLocation: userLocation,
-		Storage:      storage,
+		Store:        store,
 	})
 	if err != nil {
 		return fmt.Errorf("building server: %w", err)
