@@ -11,7 +11,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /out/marko .
+RUN CGO_ENABLED=0 go build -C cmd/ -trimpath -ldflags='-s -w' -o /out/marko .
 
 # obsidian-headless pulls in better-sqlite3, a native module. Install it in the
 # full Node image, which carries a compiler in case no prebuilt binary matches
