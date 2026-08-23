@@ -65,7 +65,7 @@ func (c *Client) Close(ctx context.Context) error {
 	if err := c.logout(ctx); err != nil {
 		return err
 	}
-	if err := c.deleteVaultFiles(ctx); err != nil {
+	if err := c.deleteVaultFiles(); err != nil {
 		return err
 	}
 	return nil

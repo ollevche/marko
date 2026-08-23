@@ -60,7 +60,16 @@ func runREST() error {
 	if err != nil {
 		return fmt.Errorf("creating store: %w", err)
 	}
-	defer store.Close(ctx)
+	// SIGTERM cancels ctx before this runs, and exec.CommandContext will not start
+	// a process on a cancelled context, so give the close its own deadline.
+	defer func() {
+		closeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		defer cancel()
+
+		if err := store.Close(closeCtx); err != nil {
+			log.Printf("Failed to close store: %v", err)
+		}
+	}()
 
 	server, err := restapi.BuildServer(restapi.Config{
 		BluedotSecret: bluedotSecret,

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 )
@@ -24,10 +23,9 @@ func (c *Client) sync(ctx context.Context) error {
 	return runOB(ctx, "sync", "--path", c.c.Vault.Path)
 }
 
-func (c *Client) deleteVaultFiles(ctx context.Context) error {
-	err := exec.CommandContext(ctx, "rm", "-r", c.c.Vault.Path).Run()
-	if err != nil {
-		return fmt.Errorf("cleaning up vault after logout: %v", err)
+func (c *Client) deleteVaultFiles() error {
+	if err := os.RemoveAll(c.c.Vault.Path); err != nil {
+		return fmt.Errorf("cleaning up vault after logout: %w", err)
 	}
 	return nil
 }

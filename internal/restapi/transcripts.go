@@ -16,6 +16,11 @@ type TranscriptService interface {
 	ProcessTranscript(ctx context.Context, t transcript.Transcript) error
 }
 
+// uploadTimeout bounds a detached transcript upload, including the vault sync it
+// triggers. It is deliberately longer than the server's WriteTimeout: finishing a
+// half-written sync matters more than answering this particular delivery attempt.
+const uploadTimeout = 2 * time.Minute
+
 type transcripts struct {
 	verifier *svix.Webhook
 	service  TranscriptService
@@ -77,7 +82,12 @@ func (h *transcripts) postMeetingTranscript(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	err = h.service.ProcessTranscript(r.Context(), t)
+	// Cancelling mid-sync would leave the vault half-written, so the upload runs
+	// detached from the request and is bounded on its own.
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), uploadTimeout)
+	defer cancel()
+
+	err = h.service.ProcessTranscript(ctx, t)
 	if err != nil && !errors.Is(err, transcript.ErrEmptyTranscript) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
