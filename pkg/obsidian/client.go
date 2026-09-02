@@ -77,6 +77,10 @@ func (c *Client) ReadFile(ctx context.Context, fp FilePath) (MarkdownFile, error
 	c.syncMu.Lock()
 	defer c.syncMu.Unlock()
 
+	if err := c.syncWithNoLock(ctx); err != nil {
+		return MarkdownFile{}, err
+	}
+
 	return c.readMarkdownFile(fp)
 }
 

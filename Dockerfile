@@ -24,6 +24,14 @@ RUN npm install -g obsidian-headless@0.0.14
 # compiled against this exact runtime one stage up.
 FROM node:22-bookworm-slim
 
+# The slim image apt-get purges its build-time packages, ca-certificates among
+# them. Node ships its own CA bundle so the Obsidian CLI never noticed, but the
+# static Go binary reads the system trust store and cannot verify api.github.com
+# without it.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copying the whole directory rather than just the package keeps whatever npm
 # decided to hoist out of the package's own node_modules. Both images are the
 # same Node build, so the npm and corepack copies coming along are identical.
