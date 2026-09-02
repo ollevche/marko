@@ -8,4 +8,5 @@ gcloud run deploy marko \
   --update-env-vars OBSIDIAN_VAULT_PATH=/home/node/vault \
   --update-env-vars OBSIDIAN_VAULT_NAME=main \
   --update-env-vars OBSIDIAN_TRANSCRIPTS_PATH_PREFIX=marko/transcripts \
+  --set-secrets GITHUB_TOKEN=github-token:latest \
   --project marko-506115
