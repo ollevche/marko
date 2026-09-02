@@ -13,12 +13,9 @@ import (
 )
 
 type TranscriptService interface {
-	ProcessTranscript(ctx context.Context, t transcript.Transcript) error
+	ProcessTranscript(context.Context, transcript.Transcript) error
 }
 
-// uploadTimeout bounds a detached transcript upload, including the vault sync it
-// triggers. It is deliberately longer than the server's WriteTimeout: finishing a
-// half-written sync matters more than answering this particular delivery attempt.
 const uploadTimeout = 2 * time.Minute
 
 type transcripts struct {
@@ -27,7 +24,7 @@ type transcripts struct {
 }
 
 func (h *transcripts) handleRoutes(handle func(string, func(http.ResponseWriter, *http.Request))) {
-	handle("POST /meetings/transcripts", h.postMeetingTranscript)
+	handle("POST /meetings/transcripts", withOverriddenCancel(h.postMeetingTranscript))
 }
 
 type postTranscriptBody struct {
@@ -49,7 +46,6 @@ type postTranscriptBody struct {
 }
 
 func (h *transcripts) postMeetingTranscript(w http.ResponseWriter, r *http.Request) {
-	// Verification needs the exact raw bytes, so read the body once and reuse it.
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -82,12 +78,7 @@ func (h *transcripts) postMeetingTranscript(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	// Cancelling mid-sync would leave the vault half-written, so the upload runs
-	// detached from the request and is bounded on its own.
-	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), uploadTimeout)
-	defer cancel()
-
-	err = h.service.ProcessTranscript(ctx, t)
+	err = h.service.ProcessTranscript(r.Context(), t)
 	if err != nil && !errors.Is(err, transcript.ErrEmptyTranscript) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

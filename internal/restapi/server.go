@@ -14,10 +14,15 @@ type Config struct {
 }
 
 type endpoint interface {
-	handleRoutes(func(string, func(http.ResponseWriter, *http.Request)))
+	handleRoutes(func(rule string, handler func(http.ResponseWriter, *http.Request)))
 }
 
-func BuildServer(c Config, ts TranscriptService) (*http.Server, error) {
+type Services struct {
+	Transcripts   TranscriptService
+	Notifications NotificationService
+}
+
+func BuildServer(c Config, s Services) (*http.Server, error) {
 	bluedotVerifier, err := svix.NewWebhook(c.BluedotSecret)
 	if err != nil {
 		return nil, fmt.Errorf("initing bluedot webhook verifier: %w", err)
@@ -26,7 +31,10 @@ func BuildServer(c Config, ts TranscriptService) (*http.Server, error) {
 	endpoints := []endpoint{
 		&transcripts{
 			verifier: bluedotVerifier,
-			service:  ts,
+			service:  s.Transcripts,
+		},
+		&notifications{
+			service: s.Notifications,
 		},
 	}
 

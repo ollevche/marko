@@ -1,15 +1,14 @@
 package restapi
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// unixSeconds is a time.Time carried in JSON as a Unix timestamp in whole
-// seconds, which is how Bluedot sends its dates. It reads a bare number or a
-// quoted one, and always writes a bare number back.
 type unixSeconds struct {
 	time.Time
 }
@@ -35,4 +34,15 @@ func (u unixSeconds) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return strconv.AppendInt(nil, u.Unix(), 10), nil
+}
+
+func withOverriddenCancel(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithoutCancel(r.Context())
+
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		next(w, r.WithContext(ctx))
+	}
 }

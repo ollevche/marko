@@ -57,7 +57,7 @@ func signedRequest(t *testing.T, payload string) *http.Request {
 func serve(t *testing.T, svc TranscriptService, req *http.Request) *httptest.ResponseRecorder {
 	t.Helper()
 
-	srv, err := BuildServer(Config{Addr: ":0", BluedotSecret: testSecret}, svc)
+	srv, err := BuildServer(Config{Addr: ":0", BluedotSecret: testSecret}, Services{Transcripts: svc})
 	if err != nil {
 		t.Fatalf("BuildServer() error = %v", err)
 	}

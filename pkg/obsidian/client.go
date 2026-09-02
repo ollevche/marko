@@ -58,14 +58,26 @@ func NewClient(ctx context.Context, config Config) (*Client, error) {
 	return c, nil
 }
 
-func (c *Client) UploadFile(ctx context.Context, f MarkdownFile) error {
-	if err := c.writeMarkdownFile(f); err != nil {
-		return err
+var ErrFileNotFound = errors.New("file not found in obisidan vault")
+
+func (c *Client) UploadFiles(ctx context.Context, files ...MarkdownFile) error {
+	c.syncMu.Lock()
+	defer c.syncMu.Unlock()
+
+	for _, f := range files {
+		if err := c.writeMarkdownFile(f); err != nil {
+			return err
+		}
 	}
-	if err := c.sync(ctx); err != nil {
-		return err
-	}
-	return nil
+
+	return c.syncWithNoLock(ctx)
+}
+
+func (c *Client) ReadFile(ctx context.Context, fp FilePath) (MarkdownFile, error) {
+	c.syncMu.Lock()
+	defer c.syncMu.Unlock()
+
+	return c.readMarkdownFile(fp)
 }
 
 func (c *Client) Close(ctx context.Context) error {

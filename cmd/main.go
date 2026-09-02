@@ -12,7 +12,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ollevche/marko/internal/domain/notification"
 	"github.com/ollevche/marko/internal/domain/transcript"
+	"github.com/ollevche/marko/internal/githubsource"
 	"github.com/ollevche/marko/internal/obsidianstore"
 	"github.com/ollevche/marko/internal/restapi"
 	"github.com/ollevche/marko/pkg/obsidian"
@@ -38,6 +40,18 @@ func runREST() error {
 		return errors.New("no bluedot secret found")
 	}
 
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	if githubToken == "" {
+		return errors.New("no github token found")
+	}
+
+	github, err := githubsource.New(githubsource.Config{
+		Token: githubToken,
+	})
+	if err != nil {
+		return fmt.Errorf("initing github source: %w", err)
+	}
+
 	obsidianCreds := strings.SplitN(os.Getenv("OBSIDIAN_CREDS"), ":", 2)
 	if len(obsidianCreds) != 2 {
 		return fmt.Errorf("invalid obsidian creds secret")
@@ -53,7 +67,8 @@ func runREST() error {
 				Password: os.Getenv("OBSIDIAN_VAULT_PASSWORD"),
 			},
 		},
-		TranscriptsPathPrefix: os.Getenv("OBSIDIAN_TRANSCRIPTS_PATH_PREFIX"),
+		TranscriptsPathPrefix:   os.Getenv("OBSIDIAN_TRANSCRIPTS_PATH_PREFIX"),
+		NotificationsPathPrefix: os.Getenv("OBSIDIAN_NOTIFICATIONS_PATH_PREFIX"),
 	}
 
 	store, err := obsidianstore.New(ctx, storeConfig)
@@ -74,9 +89,16 @@ func runREST() error {
 	server, err := restapi.BuildServer(restapi.Config{
 		BluedotSecret: bluedotSecret,
 		Addr:          addr(),
-	}, &transcript.Service{
-		UserLocation: userLocation,
-		Store:        store,
+	}, restapi.Services{
+		Transcripts: &transcript.Service{
+			UserLocation: userLocation,
+			Store:        store,
+		},
+		Notifications: &notification.Service{
+			Store:           store,
+			Source:          github,
+			MinListingDelay: 0,
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("building server: %w", err)

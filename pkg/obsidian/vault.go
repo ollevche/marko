@@ -2,6 +2,7 @@ package obsidian
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -23,6 +24,10 @@ func (c *Client) sync(ctx context.Context) error {
 	c.syncMu.Lock()
 	defer c.syncMu.Unlock()
 
+	return c.syncWithNoLock(ctx)
+}
+
+func (c *Client) syncWithNoLock(ctx context.Context) error {
 	return runOB(ctx, "sync", "--path", c.c.Vault.Path)
 }
 
@@ -43,13 +48,17 @@ func (c *Client) deleteVault() error {
 	return nil
 }
 
-type MarkdownFile struct {
+type FilePath struct {
 	Folders  []string
 	Filename string
-	Content  string
 }
 
-func (c *Client) folderPath(f MarkdownFile) string {
+type MarkdownFile struct {
+	FilePath
+	Content string
+}
+
+func (c *Client) folderPath(f FilePath) string {
 	sanitized := make([]string, len(f.Folders)+1)
 	sanitized[0] = c.c.Vault.Path
 	for i, f := range f.Folders {
@@ -58,17 +67,17 @@ func (c *Client) folderPath(f MarkdownFile) string {
 	return path.Join(sanitized...)
 }
 
-func (c *Client) filepath(f MarkdownFile) string {
+func (c *Client) filepath(f FilePath) string {
 	return path.Join(c.folderPath(f), sanitize(f.Filename))
 }
 
 func (c *Client) writeMarkdownFile(mf MarkdownFile) error {
-	err := os.MkdirAll(c.folderPath(mf), 0o755)
+	err := os.MkdirAll(c.folderPath(mf.FilePath), 0o755)
 	if err != nil {
 		return fmt.Errorf("running mkdirall: %w", err)
 	}
 
-	f, err := os.Create(c.filepath(mf))
+	f, err := os.Create(c.filepath(mf.FilePath))
 	if err != nil {
 		return fmt.Errorf("creating transcript file: %w", err)
 	}
@@ -80,6 +89,23 @@ func (c *Client) writeMarkdownFile(mf MarkdownFile) error {
 	}
 
 	return nil
+}
+
+func (c *Client) readMarkdownFile(fp FilePath) (MarkdownFile, error) {
+	b, err := os.ReadFile(c.filepath(fp))
+	if errors.Is(err, os.ErrNotExist) {
+		return MarkdownFile{}, ErrFileNotFound
+	}
+	if err != nil {
+		return MarkdownFile{}, fmt.Errorf("reading file: %w", err)
+	}
+
+	f := MarkdownFile{
+		FilePath: fp,
+		Content:  string(b),
+	}
+
+	return f, nil
 }
 
 func sanitize(name string) string {

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Store) UploadTranscript(ctx context.Context, t transcript.Transcript) error {
-	err := s.c.UploadFile(ctx, newMarkdownFileFromTranscript(s.transcriptFolders, t))
+	err := s.c.UploadFiles(ctx, newMarkdownFileFromTranscript(s.transcriptFolders, t))
 	if err != nil {
 		return fmt.Errorf("uploading file: %w", err)
 	}
@@ -61,8 +61,10 @@ func newMarkdownFileFromTranscript(transcriptFolders []string, t transcript.Tran
 	}
 
 	return obsidian.MarkdownFile{
-		Folders:  folders,
-		Filename: filename,
-		Content:  content.String(),
+		FilePath: obsidian.FilePath{
+			Folders:  folders,
+			Filename: filename,
+		},
+		Content: content.String(),
 	}
 }
